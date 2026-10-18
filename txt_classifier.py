@@ -12,6 +12,7 @@ from collections import Counter
 from pathlib import Path
 
 import torch
+import wandb
 from torch import nn
 from torch.utils.data import Dataset, DataLoader
 
@@ -178,14 +179,21 @@ def main():
     parser.add_argument('--batch_size', '--batch-size', type=int, default=1)
     parser.add_argument('--max_len', '--max-len', type=int, default=-1)
     parser.add_argument('--n_epochs', '--epochs', type=int, default=5)
-    parser.add_argument('--learning_rate', '--learning-rate', type=float, default=5.0)
+    parser.add_argument('--optimizer', choices=['sgd', 'adam'], default='sgd')
+    parser.add_argument('--learning_rate', '--learning-rate', type=float, default=None,
+                        help='Defaults to 5.0 for SGD and 0.001 (Adam default) for Adam')
     parser.add_argument('--embed_dim', type=int, default=64)
     parser.add_argument('--seed', type=int, default=42)
     parser.add_argument('--device', choices=['cpu', 'cuda'], default=None)
     parser.add_argument('--length_histogram', '--length-histogram', action='store_true')
     parser.add_argument('--output', default='txt_model.pth')
     parser.add_argument('--figure_dir', '--figure-dir', default='figures')
+    parser.add_argument('--wandb_project', default='txt_classifier')
+    parser.add_argument('--wandb_mode', choices=['online', 'offline', 'disabled'], default='online')
+    parser.add_argument('--run_name', default=None, help='wandb run name')
     args = parser.parse_args()
+    if args.learning_rate is None:
+        args.learning_rate = 5.0 if args.optimizer == 'sgd' else 1e-3
     if args.batch_size < 1 or args.n_epochs < 1 or args.max_len == 0 or args.max_len < -1:
         parser.error('Use positive batch size/epochs and max_len=-1 or a positive integer.')
     torch.manual_seed(args.seed)
@@ -210,10 +218,22 @@ def main():
     model = TextClassificationModel(corpus_info.vocab_size, args.embed_dim,
                                     corpus_info.num_labels, corpus_info.pad_idx).to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer = torch.optim.SGD(model.parameters(), lr=args.learning_rate)
-    # TODO Task 3.3: switch to Adam with its default learning rate for the second run.
-    # TODO Task 3.4: replace the baseline with your own LSTM classifier.
+    if args.optimizer == 'sgd':
+        optimizer = torch.optim.SGD(model.parameters(), lr=args.learning_rate)
+    else:
+        optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
+    num_params = sum(p.numel() for p in model.parameters())
+    print(model)
+    print(f'Optimizer: {args.optimizer} (lr={args.learning_rate})  parameters: {num_params:,}')
+
+    run = wandb.init(project=args.wandb_project, name=args.run_name, mode=args.wandb_mode,
+                     config={**vars(args), 'num_params': num_params, 'device': device})
+    wandb.define_metric('epoch')
+    wandb.define_metric('train_*', step_metric='epoch')
+    wandb.define_metric('val_*', step_metric='epoch')
+
     start = time.perf_counter()
+    examples_seen = 0
     for epoch in range(1, args.n_epochs + 1):
         model.train()
         for text, labels in loaders['train']:
@@ -223,17 +243,25 @@ def main():
             loss.backward()
             nn.utils.clip_grad_norm_(model.parameters(), 0.1)
             optimizer.step()
+            examples_seen += len(labels)
+            wandb.log({'batch_loss': loss.item(), 'examples_seen': examples_seen})
         train_loss, train_acc = evaluate(loaders['train'], model, criterion, device)
         val_loss, val_acc = evaluate(loaders['val'], model, criterion, device)
         print(f'Epoch {epoch}: train_loss={train_loss:.4f} train_acc={train_acc:.4f} '
               f'val_loss={val_loss:.4f} val_acc={val_acc:.4f}')
+        wandb.log({'epoch': epoch, 'train_loss': train_loss, 'train_acc': train_acc,
+                   'val_loss': val_loss, 'val_acc': val_acc})
     test_loss, test_acc = evaluate(loaders['test'], model, criterion, device)
     if device == 'cuda':
         torch.cuda.synchronize()
+    runtime = time.perf_counter() - start
     print(f'Test loss={test_loss:.4f} test accuracy={test_acc:.4f}')
-    print(f'Training and evaluation runtime: {time.perf_counter() - start:.3f} seconds')
+    print(f'Training and evaluation runtime: {runtime:.3f} seconds')
+    run.summary.update({'test_loss': test_loss, 'test_acc': test_acc, 'final_val_acc': val_acc,
+                        'final_train_acc': train_acc, 'runtime_seconds': runtime})
     torch.save({'model_state_dict': model.state_dict(), 'vocab': corpus_info.vocab.stoi,
                 'pad_idx': corpus_info.pad_idx, 'args': vars(args)}, args.output)
+    wandb.finish()
 
 
 if __name__ == '__main__':

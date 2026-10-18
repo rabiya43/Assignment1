@@ -76,8 +76,8 @@ class TruncateToMaxLen:
         self.max_len = max_len
 
     def __call__(self, tokens):
-        # TODO Task 3.2: truncate tokens to self.max_len.
-        raise NotImplementedError('Implement TruncateToMaxLen for Task 3.2')
+        # Keep only the first max_len tokens; shorter articles pass through unchanged.
+        return tokens[:self.max_len]
 
 
 class PadToMaxLen:
@@ -85,8 +85,8 @@ class PadToMaxLen:
         self.max_len, self.pad_idx = max_len, pad_idx
 
     def __call__(self, tokens):
-        # TODO Task 3.2: pad tokens to self.max_len with self.pad_idx.
-        raise NotImplementedError('Implement PadToMaxLen for Task 3.2')
+        # Append pad_idx until the article is exactly max_len tokens long.
+        return tokens + [self.pad_idx] * (self.max_len - len(tokens))
 
 
 class Compose:
@@ -128,6 +128,36 @@ class TextClassificationModel(nn.Module):
         return self.fc(self.embedding(text))
 
 
+def plot_length_histogram(dataset, tokenizer, figure_dir):
+    """Task 3.1: histogram of raw (untruncated, unpadded) training article lengths in tokens."""
+    import matplotlib
+    matplotlib.use('Agg')
+    import matplotlib.pyplot as plt
+
+    lengths = {'real': [], 'fake': []}
+    for row in dataset.rows:
+        lengths[row['label']].append(len(tokenizer(row['article'])))
+    all_lengths = lengths['real'] + lengths['fake']
+    print(f'Train articles: {len(all_lengths)}  min={min(all_lengths)}  '
+          f'median={sorted(all_lengths)[len(all_lengths) // 2]}  max={max(all_lengths)}  '
+          f'longer than 1024: {sum(n > 1024 for n in all_lengths)}')
+
+    fig, ax = plt.subplots(figsize=(8, 4.5))
+    bins = range(0, max(all_lengths) + 50, 50)
+    ax.hist([lengths['real'], lengths['fake']], bins=bins, stacked=True,
+            label=['real', 'fake (LLM-generated)'], color=['#3b6ea8', '#e08a3c'], edgecolor='white')
+    ax.axvline(1024, color='black', linestyle='--', linewidth=1, label='max_len = 1024')
+    ax.set_xlabel('Article length (tokens, before truncation/padding)')
+    ax.set_ylabel('Number of articles')
+    ax.set_title('Raw article lengths, training split (n = %d)' % len(all_lengths))
+    ax.legend()
+    fig.tight_layout()
+    Path(figure_dir).mkdir(parents=True, exist_ok=True)
+    out = Path(figure_dir) / 'txt_length_histogram.png'
+    fig.savefig(out, dpi=150)
+    print(f'Saved histogram to {out}')
+
+
 def evaluate(loader, model, criterion, device):
     model.eval()
     correct = count = 0
@@ -154,6 +184,7 @@ def main():
     parser.add_argument('--device', choices=['cpu', 'cuda'], default=None)
     parser.add_argument('--length_histogram', '--length-histogram', action='store_true')
     parser.add_argument('--output', default='txt_model.pth')
+    parser.add_argument('--figure_dir', '--figure-dir', default='figures')
     args = parser.parse_args()
     if args.batch_size < 1 or args.n_epochs < 1 or args.max_len == 0 or args.max_len < -1:
         parser.error('Use positive batch size/epochs and max_len=-1 or a positive integer.')
@@ -164,9 +195,8 @@ def main():
     raw_train = CsvTextDataset(data_dir / 'txt_train.csv')
     corpus_info = CorpusInfo(raw_train)
     if args.length_histogram:
-        # TODO Task 3.1: plot raw article token lengths before truncation/padding.
-        # Use the train split, label axes, and state the split and length unit.
-        raise NotImplementedError('Implement the raw-length histogram for Task 3.1')
+        plot_length_histogram(raw_train, corpus_info.tokenizer, args.figure_dir)
+        return
     transforms = [TextTransform(corpus_info.tokenizer, corpus_info.vocab)]
     if args.max_len != -1:
         transforms += [TruncateToMaxLen(args.max_len), PadToMaxLen(args.max_len, corpus_info.pad_idx)]

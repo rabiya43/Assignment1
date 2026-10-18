@@ -112,7 +112,14 @@ colour being an easy shortcut but not the only signal.</p>
 <h3>2.5 Captioned predictions</h3>
 <figure><img src="../figures/img_2_5_test_batch.png">
 <figcaption>Figure 5. First test batch after the last epoch, captioned "predicted / true". Wrong predictions in red.</figcaption></figure>
-<p><b>2.5.b</b> IMG_ERRORS</p>
+<p><b>2.5.b</b> The model got 5 of these 8 parrots right. The pirate parrot on a ship at night was called a narwhal: most of
+the picture is dark blue sea and sky, which is exactly what most narwhal images look like, and since the MLP looks at
+every pixel equally, the background outweighs the small bird. The stuffed toy parrot teaching at a whiteboard was called an
+axolotl. It is a cute, pink-red plush character in a human setting, and many axolotl images are cute pink cartoon
+characters doing human things (DJing, cooking, studying). The last one is a labelling problem more than a model problem:
+the prompt asked for "a robot parrot snowboarding ... with his other friends, orangutan and anaconda", but the generated
+image shows a humanoid robot with an orangutan and no parrot at all, so even a person could not get it right from the image.
+Overall the mistakes come from the scene and style (colours, background, cartoon look) rather than the animal itself.</p>
 
 <h3>2.6 New convolutional model</h3>
 <table>

@@ -1,0 +1,108 @@
+wandb: [wandb.login()] Loaded credentials for https://api.forge.coreweave.com from C:\Users\My PC\_netrc.
+wandb: Currently logged in as: rabiyatahir (rabiyatahir-) to https://api.forge.coreweave.com. Use `wandb login --relogin` to force relogin
+wandb: setting up run s3jt9snx
+wandb: Tracking run with wandb version 0.31.0
+wandb: Run data is saved locally in D:\Rabiya\LLM nd GenAI\Assignment1\wandb\run-20261018_200335-s3jt9snx
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run neural-the-narwhal
+wandb:  View project at https://forge.coreweave.com/wandb/rabiyatahir-/img_classifier
+wandb:  View run at https://forge.coreweave.com/wandb/rabiyatahir-/img_classifier/runs/s3jt9snx
+wandb: updating run metadata
+wandb: uploading media\images\test_first_batch_345_2960cbd802fac48a6f8c.png; uploading media\images\test_first_batch_345_ab23805a0ac70b78c713.png; uploading media\images\test_first_batch_345_cb182beaceeca0e20054.png; uploading media\images\test_first_batch_345_7dc7c3ad7822da70b0f3.png; uploading media\images\test_first_batch_345_98846a9144e42b7b45e8.png (+ 6 more)
+wandb: uploading media\images\test_first_batch_345_cb182beaceeca0e20054.png; uploading media\images\test_first_batch_345_7dc7c3ad7822da70b0f3.png; uploading media\images\test_first_batch_345_98846a9144e42b7b45e8.png; uploading media\images\test_first_batch_345_0b3cac11bac55ff1771a.png; uploading media\images\test_first_batch_345_58baa8f893be6013002f.png (+ 4 more)
+wandb: uploading media\images\test_first_batch_345_58baa8f893be6013002f.png; uploading media\images\test_first_batch_345_46c8da40a38852f77088.png
+wandb: 
+wandb: Run summary:
+wandb:      batch_loss 0.13731
+wandb:           epoch 5
+wandb:   examples_seen 2700
+wandb: final_train_acc 0.9963
+wandb:   final_val_acc 0.68966
+wandb:        test_acc 0.61739
+wandb:       test_loss 0.82143
+wandb:       train_acc 0.9963
+wandb:      train_loss 0.12882
+wandb:         val_acc 0.68966
+wandb:              +1 ...
+wandb: 
+wandb:  View run neural-the-narwhal at: https://forge.coreweave.com/wandb/rabiyatahir-/img_classifier/runs/s3jt9snx
+wandb:  View project at: https://forge.coreweave.com/wandb/rabiyatahir-/img_classifier
+wandb: Synced 5 W&B file(s), 24 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: .\wandb\run-20261018_200335-s3jt9snx\logs
+Using cpu device
+Shape of X [B, C, H, W]: torch.Size([8, 3, 256, 256])
+Shape of y: torch.Size([8]) torch.int64
+NeuralNetwork(
+  (flatten): Flatten(start_dim=1, end_dim=-1)
+  (linear_relu_stack): Sequential(
+    (0): Linear(in_features=196608, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=512, bias=True)
+    (3): ReLU()
+    (4): Linear(in_features=512, out_features=3, bias=True)
+  )
+)
+Number of parameters: 100,928,003
+
+Epoch 1
+-------------------------------
+Train loss = 1.111054  [    8/  540]
+Train loss = 1.114908  [   88/  540]
+Train loss = 0.731377  [  168/  540]
+Train loss = 0.571997  [  248/  540]
+Train loss = 1.063109  [  328/  540]
+Train loss = 0.875404  [  408/  540]
+Train loss = 0.444294  [  488/  540]
+Train accuracy = 79.6%, Train avg loss = 0.587078
+Validation accuracy = 64.7%, Validation avg loss = 0.751804
+
+Epoch 2
+-------------------------------
+Train loss = 0.839674  [    8/  540]
+Train loss = 0.431540  [   88/  540]
+Train loss = 0.582492  [  168/  540]
+Train loss = 0.464034  [  248/  540]
+Train loss = 0.253455  [  328/  540]
+Train loss = 0.471296  [  408/  540]
+Train loss = 0.553256  [  488/  540]
+Train accuracy = 91.1%, Train avg loss = 0.361820
+Validation accuracy = 73.3%, Validation avg loss = 0.660926
+
+Epoch 3
+-------------------------------
+Train loss = 0.336134  [    8/  540]
+Train loss = 0.303559  [   88/  540]
+Train loss = 0.454143  [  168/  540]
+Train loss = 0.447021  [  248/  540]
+Train loss = 0.392812  [  328/  540]
+Train loss = 0.309799  [  408/  540]
+Train loss = 0.201840  [  488/  540]
+Train accuracy = 94.8%, Train avg loss = 0.257449
+Validation accuracy = 71.6%, Validation avg loss = 0.664704
+
+Epoch 4
+-------------------------------
+Train loss = 0.138055  [    8/  540]
+Train loss = 0.289049  [   88/  540]
+Train loss = 0.317998  [  168/  540]
+Train loss = 0.243644  [  248/  540]
+Train loss = 0.237061  [  328/  540]
+Train loss = 0.165889  [  408/  540]
+Train loss = 0.224647  [  488/  540]
+Train accuracy = 97.6%, Train avg loss = 0.174645
+Validation accuracy = 70.7%, Validation avg loss = 0.656996
+
+Epoch 5
+-------------------------------
+Train loss = 0.173836  [    8/  540]
+Train loss = 0.212170  [   88/  540]
+Train loss = 0.199197  [  168/  540]
+Train loss = 0.092722  [  248/  540]
+Train loss = 0.100119  [  328/  540]
+Train loss = 0.254859  [  408/  540]
+Train loss = 0.449032  [  488/  540]
+Train accuracy = 99.6%, Train avg loss = 0.128817
+Validation accuracy = 69.0%, Validation avg loss = 0.675585
+Test accuracy = 61.7%, Test avg loss = 0.821430
+Done!
+Saved PyTorch Model State to checkpoints/neural-the-narwhal.pth

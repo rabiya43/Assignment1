@@ -8,7 +8,7 @@ Generative AI & LLM, Fall 2026 — Rabiya Tahir
 - `logs/` — console output of every reported run. `figures/` — plots used in the report.
 - `Report.pdf` — results and analysis. `Assignment_1.pdf` — the assignment handout.
 
-**Model checkpoints (Google Drive):** _link to be added_
+**Model checkpoints (Google Drive):** https://drive.google.com/drive/folders/17SR-afdAe1YH-gR1QoQA-kJ6DLmFE1L6?usp=sharing
 
 **Weights & Biases projects:** `txt_classifier` and `img_classifier`.
 

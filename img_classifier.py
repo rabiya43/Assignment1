@@ -166,7 +166,12 @@ def caption_first_batch(X, y, pred, grayscale):
     for i in range(len(y)):
         Xi_denorm = torch.clamp(denormalize(X[i].cpu()), min=0, max=1)
         caption = f"{label_names[pred[i]]} / {label_names[y[i]]}"
-        images.append(wandb.Image(Xi_denorm, caption=caption, mode="L" if grayscale else "RGB"))
+        # wandb 0.31 casts float tensors straight to uint8 (everything turns black), so scale to 0-255 first
+        pixels = (Xi_denorm.permute(1, 2, 0).numpy() * 255).round().astype("uint8")
+        if grayscale:
+            images.append(wandb.Image(pixels[:, :, 0], caption=caption, mode="L"))
+        else:
+            images.append(wandb.Image(pixels, caption=caption, mode="RGB"))
     return images
 
 def evaluate(dataloader, dataname, model, loss_fn, log_images=False, grayscale=False):

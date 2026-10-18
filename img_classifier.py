@@ -1,6 +1,4 @@
 # Adapted from CMU Fall 2024 public PyTorch Primer handout.
-# Task 2: wandb logging, validation tracking, grayscale option, captioned
-# prediction images and a new convolutional model.
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
@@ -52,7 +50,7 @@ class CsvImageDataset(Dataset):
 
 def get_norm_stats(grayscale):
     if grayscale:
-        # Grayscale is a weighted sum of R, G, B, so use the same weights for its mean/std.
+        # gray = 0.299R + 0.587G + 0.114B, so mix the imagenet stats the same way
         weights = [0.299, 0.587, 0.114]
         mean = sum(w * m for w, m in zip(weights, normalize_mean))
         std = sum(w * s for w, s in zip(weights, normalize_std))
@@ -109,8 +107,8 @@ class NeuralNetwork(nn.Module):
         logits = self.linear_relu_stack(x)
         return logits
 
+# layer norm over the channels at each pixel (nn.LayerNorm wants channels last)
 class ChannelLayerNorm(nn.Module):
-    """LayerNorm over the channel dimension of a (B, C, H, W) tensor, applied at every pixel."""
     def __init__(self, channels):
         super().__init__()
         self.norm = nn.LayerNorm(channels)
@@ -118,21 +116,21 @@ class ChannelLayerNorm(nn.Module):
     def forward(self, x):
         return self.norm(x.permute(0, 2, 3, 1)).permute(0, 3, 1, 2)
 
+# Task 2.6 model from the computation graph
 class ConvNetwork(nn.Module):
-    """Task 2.6 computation graph (a ConvNeXt-style block)."""
     def __init__(self, in_channels=3):
         super().__init__()
         self.layers = nn.Sequential(
-            nn.Conv2d(in_channels, 128, kernel_size=4, stride=4),          # (B, 128, 64, 64)
+            nn.Conv2d(in_channels, 128, kernel_size=4, stride=4),  # -> 128 x 64 x 64
             ChannelLayerNorm(128),
-            nn.Conv2d(128, 128, kernel_size=7, padding=3, groups=128),     # depthwise, (B, 128, 64, 64)
+            nn.Conv2d(128, 128, kernel_size=7, padding=3, groups=128),  # depthwise conv
             ChannelLayerNorm(128),
-            nn.Conv2d(128, 256, kernel_size=1),                            # (B, 256, 64, 64)
+            nn.Conv2d(128, 256, kernel_size=1),
             nn.GELU(),
-            nn.Conv2d(256, 128, kernel_size=1),                            # (B, 128, 64, 64)
-            nn.AvgPool2d(kernel_size=2),                                   # (B, 128, 32, 32)
-            nn.Flatten(),                                                  # (B, 128*32*32)
-            nn.Linear(128 * 32 * 32, num_labels),                          # (B, 3)
+            nn.Conv2d(256, 128, kernel_size=1),
+            nn.AvgPool2d(kernel_size=2),  # -> 128 x 32 x 32
+            nn.Flatten(),
+            nn.Linear(128 * 32 * 32, num_labels),
         )
 
     def forward(self, x):
@@ -159,7 +157,7 @@ def train_one_epoch(dataloader, model, loss_fn, optimizer, t, examples_seen):
     return examples_seen
 
 def caption_first_batch(X, y, pred, grayscale):
-    """Task 2.5: denormalize the first batch and caption each image '<predicted> / <true>'."""
+    # Task 2.5 - undo the normalization and caption as "predicted / true"
     mean, std = get_norm_stats(grayscale)
     denormalize = T.Normalize(
         mean=[-m/s for m, s in zip(mean, std)],

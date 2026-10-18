@@ -77,7 +77,7 @@ class TruncateToMaxLen:
         self.max_len = max_len
 
     def __call__(self, tokens):
-        # Keep only the first max_len tokens; shorter articles pass through unchanged.
+        # cut long articles, short ones stay the same
         return tokens[:self.max_len]
 
 
@@ -86,7 +86,7 @@ class PadToMaxLen:
         self.max_len, self.pad_idx = max_len, pad_idx
 
     def __call__(self, tokens):
-        # Append pad_idx until the article is exactly max_len tokens long.
+        # fill the rest with pad_idx up to max_len
         return tokens + [self.pad_idx] * (self.max_len - len(tokens))
 
 
@@ -129,13 +129,9 @@ class TextClassificationModel(nn.Module):
         return self.fc(self.embedding(text))
 
 
+# Task 3.4 LSTM model: embedding -> bidirectional LSTM -> max pool over time -> linear
+# ignore_padding=True packs the batch so the LSTM skips <PAD> tokens
 class LSTMClassifier(nn.Module):
-    """Task 3.4: Embedding -> (Bi)LSTM -> max pool over time -> dropout -> Linear.
-
-    With ignore_padding=True the padded batch is packed so the LSTM never reads <PAD>
-    tokens, and pad positions are masked to -inf before max pooling. With
-    ignore_padding=False the LSTM runs over the full padded sequence (for comparison).
-    """
     def __init__(self, vocab_size, embed_dim, hidden_dim, num_class, pad_idx,
                  num_layers=1, bidirectional=True, dropout=0.3, ignore_padding=True):
         super().__init__()
@@ -150,8 +146,8 @@ class LSTMClassifier(nn.Module):
 
     def forward(self, text):
         seq_len = text.size(1)
-        mask = text != self.pad_idx                               # (B, T)
-        embedded = self.embedding(text)                           # (B, T, E)
+        mask = text != self.pad_idx
+        embedded = self.embedding(text)  # B x T x E
         if self.ignore_padding:
             lengths = mask.sum(1).clamp(min=1).cpu()
             packed = nn.utils.rnn.pack_padded_sequence(embedded, lengths, batch_first=True,
@@ -159,15 +155,16 @@ class LSTMClassifier(nn.Module):
             output, _ = self.lstm(packed)
             output, _ = nn.utils.rnn.pad_packed_sequence(output, batch_first=True,
                                                          total_length=seq_len)
+            # so pad positions never win the max pool
             output = output.masked_fill(~mask.unsqueeze(-1), float('-inf'))
         else:
-            output, _ = self.lstm(embedded)                       # (B, T, H*dirs)
-        pooled = self.pool(output.transpose(1, 2)).squeeze(-1)  # (B, H*dirs)
+            output, _ = self.lstm(embedded)
+        pooled = self.pool(output.transpose(1, 2)).squeeze(-1)
         return self.fc(self.dropout(pooled))
 
 
 def plot_length_histogram(dataset, tokenizer, figure_dir):
-    """Task 3.1: histogram of raw (untruncated, unpadded) training article lengths in tokens."""
+    # Task 3.1 - token lengths of the raw train articles (no truncation/padding)
     import matplotlib
     matplotlib.use('Agg')
     import matplotlib.pyplot as plt
@@ -288,7 +285,7 @@ def main():
 
     start = time.perf_counter()
     examples_seen = 0
-    log_time = 0.0  # time spent in wandb.log, excluded from the reported runtime
+    log_time = 0.0  # don't count wandb logging time in the runtime
     best_val_acc, best_epoch, best_state = -1.0, 0, None
     for epoch in range(1, args.n_epochs + 1):
         model.train()
@@ -315,7 +312,7 @@ def main():
             best_val_acc, best_epoch = val_acc, epoch
             best_state = {k: v.detach().clone() for k, v in model.state_dict().items()}
     if args.keep_best:
-        # Restore the epoch with the highest validation accuracy (chosen without the test set).
+        # go back to the epoch with best val accuracy
         model.load_state_dict(best_state)
         train_loss, train_acc = evaluate(loaders['train'], model, criterion, device)
         val_loss, val_acc = evaluate(loaders['val'], model, criterion, device)

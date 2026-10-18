@@ -1,111 +1,87 @@
-# Assignment 1 — Student Starter Package
+# Assignment 1 — PyTorch Foundations: Image and Text Classification
 
-Generative AI & LLM, Fall 2026. Read Assignment_1.pdf for questions, marking,
-submission rules and deadline. This package supplies data and baseline code;
-it does not contain completed experiment answers or an LSTM solution.
+Generative AI & LLM, Fall 2026 — Rabiya Tahir
 
-## Contents
+- `txt_classifier.py` — Task 3: real vs. LLM-generated news classifier (EmbeddingBag baseline and LSTM).
+- `img_classifier.py` — Task 2: parrot / narwhal / axolotl image classifier (MLP baseline and CNN).
+- `run_txt_experiments.sh`, `run_img_experiments.sh` — reproduce every run in the report.
+- `logs/` — console output of every reported run. `figures/` — plots used in the report.
+- `Report.pdf` — results and analysis. `Assignment_1.pdf` — the assignment handout.
 
-- Assignment_1.pdf — your assignment handout.
-- img_classifier.py — working RGB image MLP baseline for Task 2.
-- txt_classifier.py — working EmbeddingBag text baseline for Task 3.
-- data/img_train.csv, img_val.csv, img_test.csv and the referenced JPG images.
-- data/txt_train.csv, txt_val.csv, txt_test.csv — UTF-8 text files.
-- requirements.txt — environment dependencies.
-- SOURCE_NOTES.md — source attribution and scaffold adjustments.
-- DATA_CHECKS.json — text split counts and duplicate-removal record.
+**Model checkpoints (Google Drive):** _link to be added_
+
+**Weights & Biases projects:** `txt_classifier` and `img_classifier`.
 
 ## Setup
 
-Use Python 3.10–3.12. Extract the ZIP completely. Open a terminal inside
-Assignment1_Student_Package, where the scripts and data folder are located.
+Python 3.10–3.12 is required for PyTorch 2.5.1.
 
 ```bash
-python -m pip install -r requirements.txt
+python -m venv .venv
+.venv\Scripts\activate            # Windows  (macOS/Linux: source .venv/bin/activate)
+pip install -r requirements.txt   # CPU-only machines can first install torch==2.5.1 torchvision==0.20.1
+                                  # from https://download.pytorch.org/whl/cpu to save download size
+wandb login                       # paste the API key from https://wandb.ai/authorize
 ```
 
-PyTorch 2.5.1 and torchvision 0.20.1 are the paired versions used for this
-package. For a GPU installation, use the appropriate installation command
-from https://pytorch.org/get-started/locally/ for your platform, keeping these
-versions together. Then install the remaining requirements.
-The scripts automatically use CUDA when available. CPU also works; image
-training can be slower and its baseline MLP needs substantial memory.
+Pass `--wandb_mode disabled` to any command to run without wandb (or `offline` to sync later).
+Both scripts use CUDA automatically when available; all reported runs used CPU.
 
-## Task 2: image classification
+## Task 3: text classification (`txt_classifier.py`)
+
+| Argument | Default | Meaning |
+|---|---|---|
+| `--data_dir` | `data` | Folder containing `txt_train.csv`, `txt_val.csv`, `txt_test.csv` |
+| `--batch_size` | 1 | Batch size |
+| `--max_len` | -1 | Truncate/pad every article to this many tokens; -1 disables truncation and padding |
+| `--n_epochs` | 5 | Training epochs |
+| `--model` | `baseline` | `baseline` (EmbeddingBag + Linear) or `lstm` |
+| `--optimizer` | `adam` | `adam` or `sgd` (SGD was the starter optimizer) |
+| `--learning_rate` | 5.0 for SGD, 0.001 for Adam | Learning rate |
+| `--embed_dim` | 64 | Word embedding size |
+| `--hidden_dim`, `--num_layers`, `--dropout` | 64, 1, 0.3 | LSTM size, depth and dropout |
+| `--unidirectional` | off | Use a one-direction LSTM instead of a bidirectional one |
+| `--no_ignore_padding` | off | Ablation: let the LSTM read `<PAD>` tokens and pool over them |
+| `--length_histogram` | off | Only plot the raw training-article length histogram (Task 3.1) and exit |
+| `--run_name`, `--wandb_project`, `--wandb_mode` | | wandb settings |
+| `--output` | `txt_model.pth` | Checkpoint path |
+
+Examples:
 
 ```bash
-python img_classifier.py --n_epochs 5 --batch_size 8 --learning_rate 0.001
+python txt_classifier.py --batch_size 1 --max_len -1 --length_histogram     # 3.1 -> figures/txt_length_histogram.png
+python txt_classifier.py --optimizer sgd --batch_size 32 --max_len 1024     # 3.2 / 3.3 SGD baseline
+python txt_classifier.py --optimizer adam --batch_size 32 --max_len 1024    # 3.3 Adam baseline
+python txt_classifier.py --model lstm --batch_size 32 --max_len 1024 --n_epochs 10   # 3.4 LSTM
+bash run_txt_experiments.sh .venv/Scripts/python                            # every Task 3 run
 ```
 
-The baseline uses training and validation data during training and evaluates
-the test set at the end. It saves img_model.pth. Implement the required wandb
-logging, experiments, grayscale modifications, optimizer experiment and new
-architecture yourself. Do not select model settings using test results.
+The LSTM needs equal-length batches, so use a positive `--max_len` (or `--batch_size 1`).
+`--batch_size 32 --max_len -1` fails on purpose (Task 3.2.b).
 
-Image splits: 540 training images, 116 validation images, 115 test images.
+## Task 2: image classification (`img_classifier.py`)
 
-## Task 3: text classification
-
-Start with the runnable baseline, without truncation or padding:
+| Argument | Default | Meaning |
+|---|---|---|
+| `--data_dir` | `data` | Folder containing the image CSVs and image folders |
+| `--n_epochs`, `--batch_size`, `--learning_rate` | 5, 8, 0.001 | Training settings |
+| `--optimizer` | `sgd` | `sgd` or `adam` |
+| `--model` | `base` | `base` (original MLP) or `new` (Task 2.6 CNN) |
+| `--grayscale` | off | Convert images to one grayscale channel (Task 2.4) |
+| `--run_name`, `--wandb_project`, `--wandb_mode` | | wandb settings |
+| `--output` | `img_model.pth` | Checkpoint path |
 
 ```bash
-python txt_classifier.py --batch_size 1 --max_len -1 --n_epochs 5
+python img_classifier.py --run_name neural-the-narwhal          # 2.1-2.3, 2.5
+python img_classifier.py --grayscale --run_name grayscale-base  # 2.4
+python img_classifier.py --model new --run_name new-model       # 2.6
+bash run_img_experiments.sh .venv/Scripts/python                # every Task 2 run
 ```
 
-It uses SGD with learning rate 5 and saves txt_model.pth. The vocabulary is
-built from training text only. Tokenization uses lowercase words and
-punctuation, without torchtext or external downloads.
+The original MLP has about 101M parameters (≈400 MB of weights), so it needs several GB of RAM.
 
-Student implementation points are marked TODO:
+## Data
 
-1. Task 3.1: implement the raw article length histogram. Use training articles,
-   count tokens before truncation/padding, label axes, and identify the split
-   and length unit in your report. The --length_histogram flag intentionally
-   raises NotImplementedError until you implement this part.
-2. Task 3.2: implement TruncateToMaxLen and PadToMaxLen. A positive --max_len
-   intentionally raises NotImplementedError until these are implemented.
-3. Task 3.3: compare the supplied SGD baseline with Adam at its default learning
-   rate; retain Adam for subsequent experiments.
-4. Task 3.4: implement your own LSTM using nn.Embedding and pooling as specified.
-5. Task 3.5: examine the paired real/generated texts and discuss your results.
-
-After completing the relevant TODOs, run the commands from the PDF:
-
-```bash
-python txt_classifier.py --batch_size 1 --max_len -1 --length_histogram
-python txt_classifier.py --batch_size 1 --max_len -1
-python txt_classifier.py --batch_size 1 --max_len 1024
-python txt_classifier.py --batch_size 32 --max_len 1024
-python txt_classifier.py --batch_size 32 --max_len -1
-```
-
-The collator stacks the sequences produced by the transforms. It does not
-silently pad variable-length batches. Keep this behaviour for Task 3.2.
-Underscore and hyphen forms of --batch_size and --max_len are accepted.
-Keep epoch count, seed, device and dataset constant for runtime comparisons.
-
-## Text data
-
-| Split | Articles | Real | Fake/generated |
-|---|---:|---:|---:|
-| Train | 358 | 179 | 179 |
-| Validation | 76 | 38 | 38 |
-| Test | 74 | 37 | 37 |
-
-Columns: article, source, label, label_idx. Label mapping: real=0, fake=1.
-The first line of article is the title. Each real/generated pair is adjacent
-and remains entirely within one split. The cleaned split is approximately
-70% / 15% / 15%. Do not re-split the supplied CSVs.
-
-Here, real/fake are the original dataset's source labels: published text
-versus generated text. They are not independent factual verification of
-every claim. The source column contains a URL for published articles and a
-generation prompt for generated articles. Only article is a model input;
-source, label and label_idx must never be included as input features.
-
-## Submission
-
-Follow Assignment_1.pdf. Submit your own .py implementation and report,
-maintain the required private GitHub repository, and provide the required
-checkpoint and AI-conversation links. Do not include any supplied scaffold
-as evidence of code you independently implemented.
+Text: 358 / 76 / 74 train / val / test articles, balanced real (label 0) and fake (label 1).
+Images: 540 / 116 / 115 train / val / test images, labels parrot (0), narwhal (1), axolotl (2).
+Only the `article` column is used as model input.

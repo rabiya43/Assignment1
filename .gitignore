@@ -4,3 +4,4 @@ wandb/
 *.pth
 scratch.pth
 checkpoints/
+figures/wandb_media/

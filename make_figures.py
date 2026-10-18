@@ -29,12 +29,16 @@ def get_runs(api, entity, project):
 
 
 def epoch_history(run, keys):
-    rows = [r for r in run.scan_history(keys=['epoch'] + keys)]
+    rows = [r for r in run.history(keys=['epoch'] + keys, samples=100000, pandas=False)
+            if all(r.get(k) is not None for k in ['epoch'] + keys)]
+    rows.sort(key=lambda r: r['epoch'])
     return {k: np.array([r[k] for r in rows]) for k in ['epoch'] + keys}
 
 
 def batch_history(run):
-    rows = [r for r in run.scan_history(keys=['examples_seen', 'batch_loss'])]
+    rows = [r for r in run.history(keys=['examples_seen', 'batch_loss'], samples=100000, pandas=False)
+            if r.get('examples_seen') is not None and r.get('batch_loss') is not None]
+    rows.sort(key=lambda r: r['examples_seen'])
     return np.array([r['examples_seen'] for r in rows]), np.array([r['batch_loss'] for r in rows])
 
 
@@ -67,7 +71,7 @@ def train_val_plot(runs, labels, metric, ylabel, title, out):
     print('wrote', out)
 
 
-def batch_loss_plot(runs, labels, title, out, window=1):
+def batch_loss_plot(runs, labels, title, out, window=1, ymax=None):
     fig, ax = plt.subplots(figsize=(7, 4))
     for i, (name, label) in enumerate(zip(runs, labels)):
         x, y = batch_history(runs[name])
@@ -77,6 +81,9 @@ def batch_loss_plot(runs, labels, title, out, window=1):
                 label=label + (f' ({window}-batch moving average)' if window > 1 else ''))
     ax.set_xlabel('Examples seen by the optimizer')
     ax.set_ylabel('Training loss (mean over batch)')
+    if ymax is not None:
+        ax.set_ylim(0, ymax)
+        title += f' (y-axis cut at {ymax})'
     ax.set_title(title, loc='left')
     ax.legend(loc='upper right')
     fig.tight_layout()
@@ -122,7 +129,7 @@ def main():
     batch_loss_plot({k: txt[k] for k in ['sgd-bs1-maxlen-none', 'adam-bs1-maxlen-none']},
                     ['SGD (lr 5)', 'Adam (lr 0.001)'],
                     'Text: per-batch training loss, batch size 1', out / 'txt_batch_loss_sgd_vs_adam.png',
-                    window=50)
+                    window=50, ymax=3)
     train_val_plot({k: txt[k] for k in ['sgd-bs1-maxlen-none', 'adam-bs1-maxlen-none']},
                    ['SGD', 'Adam'], 'acc', 'Accuracy',
                    'Text: SGD vs Adam (batch 1, no truncation)', out / 'txt_sgd_vs_adam_acc.png')

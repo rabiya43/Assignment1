@@ -1,0 +1,50 @@
+wandb: [wandb.login()] Loaded credentials for https://api.forge.coreweave.com from C:\Users\My PC\_netrc.
+wandb: Currently logged in as: rabiyatahir (rabiyatahir-) to https://api.forge.coreweave.com. Use `wandb login --relogin` to force relogin
+wandb: setting up run ca8osj3t
+wandb: Tracking run with wandb version 0.31.0
+wandb: Run data is saved locally in D:\Rabiya\LLM nd GenAI\Assignment1\wandb\run-20261018_192402-ca8osj3t
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run baseline-adam-10ep-keepbest
+wandb:  View project at https://forge.coreweave.com/wandb/rabiyatahir-/txt_classifier
+wandb:  View run at https://forge.coreweave.com/wandb/rabiyatahir-/txt_classifier/runs/ca8osj3t
+wandb: updating run metadata
+wandb: uploading output.log; uploading wandb-summary.json; uploading config.yaml; uploading history steps 0-129, summary, console lines 0-12
+wandb: uploading output.log; uploading wandb-summary.json; uploading history steps 0-129, summary, console lines 0-12
+wandb: uploading history steps 0-129, summary, console lines 0-12
+wandb: uploading data
+wandb: 
+wandb: Run summary:
+wandb:      batch_loss 0.42595
+wandb:      best_epoch 7
+wandb:    best_val_acc 0.89474
+wandb:           epoch 10
+wandb:   examples_seen 3580
+wandb: final_train_acc 0.9581
+wandb:   final_val_acc 0.89474
+wandb:       keep_best True
+wandb: runtime_seconds 13.87137
+wandb:        test_acc 0.93243
+wandb:              +5 ...
+wandb: 
+wandb:  View run baseline-adam-10ep-keepbest at: https://forge.coreweave.com/wandb/rabiyatahir-/txt_classifier/runs/ca8osj3t
+wandb:  View project at: https://forge.coreweave.com/wandb/rabiyatahir-/txt_classifier
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: .\wandb\run-20261018_192402-ca8osj3t\logs
+TextClassificationModel(
+  (embedding): EmbeddingBag(13026, 64, mode='mean', padding_idx=1)
+  (fc): Linear(in_features=64, out_features=2, bias=True)
+)
+Optimizer: adam (lr=0.001)  parameters: 833,794
+Epoch 1: train_loss=0.6679 train_acc=0.7654 val_loss=0.6596 val_acc=0.6842
+Epoch 2: train_loss=0.6452 train_acc=0.8827 val_loss=0.6409 val_acc=0.7632
+Epoch 3: train_loss=0.6219 train_acc=0.9106 val_loss=0.6214 val_acc=0.8158
+Epoch 4: train_loss=0.5979 train_acc=0.9330 val_loss=0.6024 val_acc=0.8289
+Epoch 5: train_loss=0.5733 train_acc=0.9441 val_loss=0.5821 val_acc=0.8553
+Epoch 6: train_loss=0.5482 train_acc=0.9469 val_loss=0.5611 val_acc=0.8816
+Epoch 7: train_loss=0.5202 train_acc=0.9581 val_loss=0.5392 val_acc=0.8947
+Epoch 8: train_loss=0.4913 train_acc=0.9637 val_loss=0.5161 val_acc=0.8947
+Epoch 9: train_loss=0.4615 train_acc=0.9665 val_loss=0.4911 val_acc=0.8947
+Epoch 10: train_loss=0.4307 train_acc=0.9665 val_loss=0.4654 val_acc=0.8947
+Restored best epoch 7: train_acc=0.9581 val_acc=0.8947
+Test loss=0.5278 test accuracy=0.9324
+Training and evaluation runtime: 13.871 seconds

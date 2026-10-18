@@ -1,0 +1,24 @@
+TextClassificationModel(
+  (embedding): EmbeddingBag(13026, 64, mode='mean', padding_idx=1)
+  (fc): Linear(in_features=64, out_features=2, bias=True)
+)
+Optimizer: sgd (lr=5.0)  parameters: 833,794
+Traceback (most recent call last):
+  File "D:\Rabiya\LLM nd GenAI\Assignment1\txt_classifier.py", line 325, in <module>
+    main()
+  File "D:\Rabiya\LLM nd GenAI\Assignment1\txt_classifier.py", line 292, in main
+    for text, labels in loaders['train']:
+                        ~~~~~~~^^^^^^^^^
+  File "D:\Rabiya\LLM nd GenAI\Assignment1\.venv\Lib\site-packages\torch\utils\data\dataloader.py", line 701, in __next__
+    data = self._next_data()
+           ^^^^^^^^^^^^^^^^^
+  File "D:\Rabiya\LLM nd GenAI\Assignment1\.venv\Lib\site-packages\torch\utils\data\dataloader.py", line 757, in _next_data
+    data = self._dataset_fetcher.fetch(index)  # may raise StopIteration
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Rabiya\LLM nd GenAI\Assignment1\.venv\Lib\site-packages\torch\utils\data\_utils\fetch.py", line 55, in fetch
+    return self.collate_fn(data)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Rabiya\LLM nd GenAI\Assignment1\txt_classifier.py", line 112, in __call__
+    text = torch.stack([torch.tensor(x, dtype=torch.long) for x, _ in batch])
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+RuntimeError: stack expects each tensor to be equal size, but got [140] at entry 0 and [517] at entry 1

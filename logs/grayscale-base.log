@@ -1,0 +1,108 @@
+wandb: [wandb.login()] Loaded credentials for https://api.forge.coreweave.com from C:\Users\My PC\_netrc.
+wandb: Currently logged in as: rabiyatahir (rabiyatahir-) to https://api.forge.coreweave.com. Use `wandb login --relogin` to force relogin
+wandb: setting up run qxjy0wvd
+wandb: Tracking run with wandb version 0.31.0
+wandb: Run data is saved locally in D:\Rabiya\LLM nd GenAI\Assignment1\wandb\run-20261018_183740-qxjy0wvd
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run grayscale-base
+wandb:  View project at https://forge.coreweave.com/wandb/rabiyatahir-/img_classifier
+wandb:  View run at https://forge.coreweave.com/wandb/rabiyatahir-/img_classifier/runs/qxjy0wvd
+wandb: updating run metadata; uploading media\images\train_first_batch_344_5933d4c44ed2bc2f431e.png; uploading media\images\val_first_batch_344_5933d4c44ed2bc2f431e.png
+wandb: updating run metadata
+wandb: uploading media\images\test_first_batch_345_5933d4c44ed2bc2f431e.png; uploading output.log; uploading wandb-summary.json; uploading config.yaml
+wandb: uploading history steps 345-345, summary, console lines 60-62
+wandb: 
+wandb: Run summary:
+wandb:      batch_loss 0.19658
+wandb:           epoch 5
+wandb:   examples_seen 2700
+wandb: final_train_acc 0.88889
+wandb:   final_val_acc 0.60345
+wandb:        test_acc 0.57391
+wandb:       test_loss 0.93827
+wandb:       train_acc 0.88889
+wandb:      train_loss 0.48036
+wandb:         val_acc 0.60345
+wandb:              +1 ...
+wandb: 
+wandb:  View run grayscale-base at: https://forge.coreweave.com/wandb/rabiyatahir-/img_classifier/runs/qxjy0wvd
+wandb:  View project at: https://forge.coreweave.com/wandb/rabiyatahir-/img_classifier
+wandb: Synced 5 W&B file(s), 3 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: .\wandb\run-20261018_183740-qxjy0wvd\logs
+Using cpu device
+Shape of X [B, C, H, W]: torch.Size([8, 1, 256, 256])
+Shape of y: torch.Size([8]) torch.int64
+NeuralNetwork(
+  (flatten): Flatten(start_dim=1, end_dim=-1)
+  (linear_relu_stack): Sequential(
+    (0): Linear(in_features=65536, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Linear(in_features=512, out_features=512, bias=True)
+    (3): ReLU()
+    (4): Linear(in_features=512, out_features=3, bias=True)
+  )
+)
+Number of parameters: 33,819,139
+
+Epoch 1
+-------------------------------
+Train loss = 1.120237  [    8/  540]
+Train loss = 1.079268  [   88/  540]
+Train loss = 1.083350  [  168/  540]
+Train loss = 1.030872  [  248/  540]
+Train loss = 1.032096  [  328/  540]
+Train loss = 0.896484  [  408/  540]
+Train loss = 1.280760  [  488/  540]
+Train accuracy = 69.3%, Train avg loss = 0.883723
+Validation accuracy = 54.3%, Validation avg loss = 0.958873
+
+Epoch 2
+-------------------------------
+Train loss = 0.762491  [    8/  540]
+Train loss = 0.854915  [   88/  540]
+Train loss = 1.002252  [  168/  540]
+Train loss = 0.870730  [  248/  540]
+Train loss = 0.889948  [  328/  540]
+Train loss = 0.914897  [  408/  540]
+Train loss = 0.778647  [  488/  540]
+Train accuracy = 77.8%, Train avg loss = 0.750877
+Validation accuracy = 53.4%, Validation avg loss = 0.917414
+
+Epoch 3
+-------------------------------
+Train loss = 0.800734  [    8/  540]
+Train loss = 0.641233  [   88/  540]
+Train loss = 0.673273  [  168/  540]
+Train loss = 0.801007  [  248/  540]
+Train loss = 1.111377  [  328/  540]
+Train loss = 0.537986  [  408/  540]
+Train loss = 0.726723  [  488/  540]
+Train accuracy = 75.0%, Train avg loss = 0.683059
+Validation accuracy = 56.9%, Validation avg loss = 0.921392
+
+Epoch 4
+-------------------------------
+Train loss = 0.792799  [    8/  540]
+Train loss = 0.658928  [   88/  540]
+Train loss = 0.603634  [  168/  540]
+Train loss = 0.800387  [  248/  540]
+Train loss = 0.696784  [  328/  540]
+Train loss = 0.756690  [  408/  540]
+Train loss = 0.656031  [  488/  540]
+Train accuracy = 85.7%, Train avg loss = 0.563053
+Validation accuracy = 59.5%, Validation avg loss = 0.891582
+
+Epoch 5
+-------------------------------
+Train loss = 0.584464  [    8/  540]
+Train loss = 0.796688  [   88/  540]
+Train loss = 0.609962  [  168/  540]
+Train loss = 0.505189  [  248/  540]
+Train loss = 0.608025  [  328/  540]
+Train loss = 0.537366  [  408/  540]
+Train loss = 0.632446  [  488/  540]
+Train accuracy = 88.9%, Train avg loss = 0.480362
+Validation accuracy = 60.3%, Validation avg loss = 0.882446
+Test accuracy = 57.4%, Test avg loss = 0.938273
+Done!
+Saved PyTorch Model State to checkpoints/grayscale-base.pth

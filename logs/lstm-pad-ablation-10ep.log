@@ -1,0 +1,50 @@
+wandb: [wandb.login()] Loaded credentials for https://api.forge.coreweave.com from C:\Users\My PC\_netrc.
+wandb: Currently logged in as: rabiyatahir (rabiyatahir-) to https://api.forge.coreweave.com. Use `wandb login --relogin` to force relogin
+wandb: setting up run ec2yaekj
+wandb: Tracking run with wandb version 0.31.0
+wandb: Run data is saved locally in D:\Rabiya\LLM nd GenAI\Assignment1\wandb\run-20261018_190107-ec2yaekj
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run lstm-pad-ablation-10ep
+wandb:  View project at https://forge.coreweave.com/wandb/rabiyatahir-/txt_classifier
+wandb:  View run at https://forge.coreweave.com/wandb/rabiyatahir-/txt_classifier/runs/ec2yaekj
+wandb: updating run metadata
+wandb: uploading output.log; uploading wandb-summary.json; uploading config.yaml
+wandb: uploading history steps 129-129, summary, console lines 9-11
+wandb: 
+wandb: Run summary:
+wandb:      batch_loss 0.29168
+wandb:           epoch 10
+wandb:   examples_seen 3580
+wandb: final_train_acc 0.97207
+wandb:   final_val_acc 0.94737
+wandb: runtime_seconds 1337.85552
+wandb:        test_acc 0.90541
+wandb:       test_loss 0.35211
+wandb:       train_acc 0.97207
+wandb:      train_loss 0.26821
+wandb:              +2 ...
+wandb: 
+wandb:  View run lstm-pad-ablation-10ep at: https://forge.coreweave.com/wandb/rabiyatahir-/txt_classifier/runs/ec2yaekj
+wandb:  View project at: https://forge.coreweave.com/wandb/rabiyatahir-/txt_classifier
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: .\wandb\run-20261018_190107-ec2yaekj\logs
+LSTMClassifier(
+  (embedding): Embedding(13026, 64, padding_idx=1)
+  (lstm): LSTM(64, 64, batch_first=True, bidirectional=True)
+  (pool): AdaptiveMaxPool1d(output_size=1)
+  (dropout): Dropout(p=0.3, inplace=False)
+  (fc): Linear(in_features=128, out_features=2, bias=True)
+)
+Optimizer: adam (lr=0.001)  parameters: 900,482
+Epoch 1: train_loss=0.6613 train_acc=0.6117 val_loss=0.6732 val_acc=0.5789
+Epoch 2: train_loss=0.6298 train_acc=0.9469 val_loss=0.6529 val_acc=0.8553
+Epoch 3: train_loss=0.5989 train_acc=0.9693 val_loss=0.6328 val_acc=0.9079
+Epoch 4: train_loss=0.5663 train_acc=0.9162 val_loss=0.6132 val_acc=0.7500
+Epoch 5: train_loss=0.5276 train_acc=0.9693 val_loss=0.5840 val_acc=0.8816
+Epoch 6: train_loss=0.4868 train_acc=0.9777 val_loss=0.5528 val_acc=0.9079
+Epoch 7: train_loss=0.4386 train_acc=0.9721 val_loss=0.5187 val_acc=0.8684
+Epoch 8: train_loss=0.3850 train_acc=0.9777 val_loss=0.4716 val_acc=0.8947
+Epoch 9: train_loss=0.3312 train_acc=0.9749 val_loss=0.4275 val_acc=0.8684
+Epoch 10: train_loss=0.2682 train_acc=0.9721 val_loss=0.3593 val_acc=0.9474
+Test loss=0.3521 test accuracy=0.9054
+Training and evaluation runtime: 1337.856 seconds

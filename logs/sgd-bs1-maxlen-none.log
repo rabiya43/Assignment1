@@ -1,0 +1,42 @@
+wandb: [wandb.login()] Loaded credentials for https://api.forge.coreweave.com from C:\Users\My PC\_netrc.
+wandb: Currently logged in as: rabiyatahir (rabiyatahir-) to https://api.forge.coreweave.com. Use `wandb login --relogin` to force relogin
+wandb: setting up run 4xvdt50x
+wandb: Tracking run with wandb version 0.31.0
+wandb: Run data is saved locally in D:\Rabiya\LLM nd GenAI\Assignment1\wandb\run-20261018_182441-4xvdt50x
+wandb: Run `wandb offline` to turn off syncing.
+wandb: Syncing run sgd-bs1-maxlen-none
+wandb:  View project at https://forge.coreweave.com/wandb/rabiyatahir-/txt_classifier
+wandb:  View run at https://forge.coreweave.com/wandb/rabiyatahir-/txt_classifier/runs/4xvdt50x
+wandb: updating run metadata
+wandb: uploading wandb-summary.json; uploading config.yaml; uploading output.log
+wandb: uploading history steps 1435-1794, summary, console lines 3-6
+wandb: 
+wandb: Run summary:
+wandb:      batch_loss 0.26652
+wandb:           epoch 5
+wandb:   examples_seen 1790
+wandb: final_train_acc 0.91899
+wandb:   final_val_acc 0.94737
+wandb: runtime_seconds 16.51856
+wandb:        test_acc 0.93243
+wandb:       test_loss 0.1332
+wandb:       train_acc 0.91899
+wandb:      train_loss 0.23384
+wandb:              +2 ...
+wandb: 
+wandb:  View run sgd-bs1-maxlen-none at: https://forge.coreweave.com/wandb/rabiyatahir-/txt_classifier/runs/4xvdt50x
+wandb:  View project at: https://forge.coreweave.com/wandb/rabiyatahir-/txt_classifier
+wandb: Synced 5 W&B file(s), 0 media file(s), 0 artifact file(s) and 0 other file(s)
+wandb: Find logs at: .\wandb\run-20261018_182441-4xvdt50x\logs
+TextClassificationModel(
+  (embedding): EmbeddingBag(13026, 64, mode='mean', padding_idx=1)
+  (fc): Linear(in_features=64, out_features=2, bias=True)
+)
+Optimizer: sgd (lr=5.0)  parameters: 833,794
+Epoch 1: train_loss=0.6218 train_acc=0.6257 val_loss=0.4904 val_acc=0.7763
+Epoch 2: train_loss=0.4822 train_acc=0.8101 val_loss=0.3329 val_acc=0.8816
+Epoch 3: train_loss=0.2925 train_acc=0.9190 val_loss=0.2350 val_acc=0.9079
+Epoch 4: train_loss=0.2351 train_acc=0.9358 val_loss=0.1796 val_acc=0.9342
+Epoch 5: train_loss=0.2338 train_acc=0.9190 val_loss=0.1817 val_acc=0.9474
+Test loss=0.1332 test accuracy=0.9324
+Training and evaluation runtime: 16.519 seconds

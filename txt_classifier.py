@@ -129,6 +129,43 @@ class TextClassificationModel(nn.Module):
         return self.fc(self.embedding(text))
 
 
+class LSTMClassifier(nn.Module):
+    """Task 3.4: Embedding -> (Bi)LSTM -> max pool over time -> dropout -> Linear.
+
+    With ignore_padding=True the padded batch is packed so the LSTM never reads <PAD>
+    tokens, and pad positions are masked to -inf before max pooling. With
+    ignore_padding=False the LSTM runs over the full padded sequence (for comparison).
+    """
+    def __init__(self, vocab_size, embed_dim, hidden_dim, num_class, pad_idx,
+                 num_layers=1, bidirectional=True, dropout=0.3, ignore_padding=True):
+        super().__init__()
+        self.pad_idx, self.ignore_padding = pad_idx, ignore_padding
+        self.embedding = nn.Embedding(vocab_size, embed_dim, padding_idx=pad_idx)
+        self.lstm = nn.LSTM(embed_dim, hidden_dim, num_layers=num_layers, batch_first=True,
+                            bidirectional=bidirectional,
+                            dropout=dropout if num_layers > 1 else 0.0)
+        self.pool = nn.AdaptiveMaxPool1d(1)
+        self.dropout = nn.Dropout(dropout)
+        self.fc = nn.Linear(hidden_dim * (2 if bidirectional else 1), num_class)
+
+    def forward(self, text):
+        seq_len = text.size(1)
+        mask = text != self.pad_idx                               # (B, T)
+        embedded = self.embedding(text)                           # (B, T, E)
+        if self.ignore_padding:
+            lengths = mask.sum(1).clamp(min=1).cpu()
+            packed = nn.utils.rnn.pack_padded_sequence(embedded, lengths, batch_first=True,
+                                                       enforce_sorted=False)
+            output, _ = self.lstm(packed)
+            output, _ = nn.utils.rnn.pad_packed_sequence(output, batch_first=True,
+                                                         total_length=seq_len)
+            output = output.masked_fill(~mask.unsqueeze(-1), float('-inf'))
+        else:
+            output, _ = self.lstm(embedded)                       # (B, T, H*dirs)
+        pooled = self.pool(output.transpose(1, 2)).squeeze(-1)  # (B, H*dirs)
+        return self.fc(self.dropout(pooled))
+
+
 def plot_length_histogram(dataset, tokenizer, figure_dir):
     """Task 3.1: histogram of raw (untruncated, unpadded) training article lengths in tokens."""
     import matplotlib
@@ -179,7 +216,15 @@ def main():
     parser.add_argument('--batch_size', '--batch-size', type=int, default=1)
     parser.add_argument('--max_len', '--max-len', type=int, default=-1)
     parser.add_argument('--n_epochs', '--epochs', type=int, default=5)
-    parser.add_argument('--optimizer', choices=['sgd', 'adam'], default='sgd')
+    parser.add_argument('--model', choices=['baseline', 'lstm'], default='baseline')
+    parser.add_argument('--hidden_dim', type=int, default=64, help='LSTM hidden size')
+    parser.add_argument('--num_layers', type=int, default=1, help='Number of stacked LSTM layers')
+    parser.add_argument('--dropout', type=float, default=0.3, help='LSTM classifier dropout')
+    parser.add_argument('--unidirectional', action='store_true', help='Use a one-direction LSTM')
+    parser.add_argument('--no_ignore_padding', action='store_true',
+                        help='Let the LSTM read <PAD> tokens and pool over them (ablation)')
+    parser.add_argument('--optimizer', choices=['sgd', 'adam'], default='adam',
+                        help='Adam is the default from Task 3.3 onwards')
     parser.add_argument('--learning_rate', '--learning-rate', type=float, default=None,
                         help='Defaults to 5.0 for SGD and 0.001 (Adam default) for Adam')
     parser.add_argument('--embed_dim', type=int, default=64)
@@ -215,8 +260,15 @@ def main():
         loaders[split] = DataLoader(dataset, batch_size=args.batch_size,
                                    shuffle=(split == 'train'),
                                    collate_fn=PadSequence(corpus_info.pad_idx))
-    model = TextClassificationModel(corpus_info.vocab_size, args.embed_dim,
-                                    corpus_info.num_labels, corpus_info.pad_idx).to(device)
+    if args.model == 'baseline':
+        model = TextClassificationModel(corpus_info.vocab_size, args.embed_dim,
+                                        corpus_info.num_labels, corpus_info.pad_idx)
+    else:
+        model = LSTMClassifier(corpus_info.vocab_size, args.embed_dim, args.hidden_dim,
+                               corpus_info.num_labels, corpus_info.pad_idx,
+                               num_layers=args.num_layers, bidirectional=not args.unidirectional,
+                               dropout=args.dropout, ignore_padding=not args.no_ignore_padding)
+    model = model.to(device)
     criterion = nn.CrossEntropyLoss()
     if args.optimizer == 'sgd':
         optimizer = torch.optim.SGD(model.parameters(), lr=args.learning_rate)
@@ -234,6 +286,7 @@ def main():
 
     start = time.perf_counter()
     examples_seen = 0
+    log_time = 0.0  # time spent in wandb.log, excluded from the reported runtime
     for epoch in range(1, args.n_epochs + 1):
         model.train()
         for text, labels in loaders['train']:
@@ -244,17 +297,21 @@ def main():
             nn.utils.clip_grad_norm_(model.parameters(), 0.1)
             optimizer.step()
             examples_seen += len(labels)
+            log_start = time.perf_counter()
             wandb.log({'batch_loss': loss.item(), 'examples_seen': examples_seen})
+            log_time += time.perf_counter() - log_start
         train_loss, train_acc = evaluate(loaders['train'], model, criterion, device)
         val_loss, val_acc = evaluate(loaders['val'], model, criterion, device)
         print(f'Epoch {epoch}: train_loss={train_loss:.4f} train_acc={train_acc:.4f} '
               f'val_loss={val_loss:.4f} val_acc={val_acc:.4f}')
+        log_start = time.perf_counter()
         wandb.log({'epoch': epoch, 'train_loss': train_loss, 'train_acc': train_acc,
                    'val_loss': val_loss, 'val_acc': val_acc})
+        log_time += time.perf_counter() - log_start
     test_loss, test_acc = evaluate(loaders['test'], model, criterion, device)
     if device == 'cuda':
         torch.cuda.synchronize()
-    runtime = time.perf_counter() - start
+    runtime = time.perf_counter() - start - log_time
     print(f'Test loss={test_loss:.4f} test accuracy={test_acc:.4f}')
     print(f'Training and evaluation runtime: {runtime:.3f} seconds')
     run.summary.update({'test_loss': test_loss, 'test_acc': test_acc, 'final_val_acc': val_acc,

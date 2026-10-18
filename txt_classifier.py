@@ -221,6 +221,8 @@ def main():
     parser.add_argument('--num_layers', type=int, default=1, help='Number of stacked LSTM layers')
     parser.add_argument('--dropout', type=float, default=0.3, help='LSTM classifier dropout')
     parser.add_argument('--unidirectional', action='store_true', help='Use a one-direction LSTM')
+    parser.add_argument('--keep_best', action='store_true',
+                        help='Evaluate on test with the weights from the best validation-accuracy epoch')
     parser.add_argument('--no_ignore_padding', action='store_true',
                         help='Let the LSTM read <PAD> tokens and pool over them (ablation)')
     parser.add_argument('--optimizer', choices=['sgd', 'adam'], default='adam',
@@ -287,6 +289,7 @@ def main():
     start = time.perf_counter()
     examples_seen = 0
     log_time = 0.0  # time spent in wandb.log, excluded from the reported runtime
+    best_val_acc, best_epoch, best_state = -1.0, 0, None
     for epoch in range(1, args.n_epochs + 1):
         model.train()
         for text, labels in loaders['train']:
@@ -308,6 +311,15 @@ def main():
         wandb.log({'epoch': epoch, 'train_loss': train_loss, 'train_acc': train_acc,
                    'val_loss': val_loss, 'val_acc': val_acc})
         log_time += time.perf_counter() - log_start
+        if val_acc > best_val_acc:
+            best_val_acc, best_epoch = val_acc, epoch
+            best_state = {k: v.detach().clone() for k, v in model.state_dict().items()}
+    if args.keep_best:
+        # Restore the epoch with the highest validation accuracy (chosen without the test set).
+        model.load_state_dict(best_state)
+        train_loss, train_acc = evaluate(loaders['train'], model, criterion, device)
+        val_loss, val_acc = evaluate(loaders['val'], model, criterion, device)
+        print(f'Restored best epoch {best_epoch}: train_acc={train_acc:.4f} val_acc={val_acc:.4f}')
     test_loss, test_acc = evaluate(loaders['test'], model, criterion, device)
     if device == 'cuda':
         torch.cuda.synchronize()
@@ -315,7 +327,9 @@ def main():
     print(f'Test loss={test_loss:.4f} test accuracy={test_acc:.4f}')
     print(f'Training and evaluation runtime: {runtime:.3f} seconds')
     run.summary.update({'test_loss': test_loss, 'test_acc': test_acc, 'final_val_acc': val_acc,
-                        'final_train_acc': train_acc, 'runtime_seconds': runtime})
+                        'final_train_acc': train_acc, 'runtime_seconds': runtime,
+                        'best_epoch': best_epoch, 'best_val_acc': best_val_acc,
+                        'keep_best': args.keep_best})
     torch.save({'model_state_dict': model.state_dict(), 'vocab': corpus_info.vocab.stoi,
                 'pad_idx': corpus_info.pad_idx, 'args': vars(args)}, args.output)
     wandb.finish()
